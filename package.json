@@ -1,5 +1,5 @@
 {
-  "name": "nome-do-seu-projeto",
+  "name": "BackEnd-SpaceBank",
   "version": "1.0.0",
   "description": "Descrição do seu projeto",
   "main": "server.ts",

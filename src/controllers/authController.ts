@@ -60,6 +60,7 @@ export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   try {
+    // Verificar se o usuário existe
     const [user] = await pool.query(
       'SELECT * FROM users WHERE email = ?',
       [email]
@@ -69,12 +70,17 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    const match = await bcrypt.compare(password, user[0].password);
+    // Recuperar o hash da senha armazenada no banco de dados
+    const hashedPasswordFromDB = user[0].password;
+
+    // Comparar o hash da senha fornecida pelo usuário com o hash armazenado no banco de dados
+    const match = await bcrypt.compare(password, hashedPasswordFromDB);
 
     if (!match) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    // Se as senhas coincidirem, o login é bem-sucedido
     const token = jwt.sign({ userId: user[0].id }, secretKey, { expiresIn: '1h' });
 
     res.status(200).json({ message: 'Login successful', token });
