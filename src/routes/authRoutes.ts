@@ -5,9 +5,8 @@ import requireAuth from '../middleware/authMiddleware';
 
 const router = express.Router();
 
+router.post('/login', loginUser);
 // Rota protegida para obter informações do usuário autenticado
 router.get('/user', requireAuth, verifyToken, getUserInfo);
-
-router.post('/login', loginUser);
 
 export default router;
