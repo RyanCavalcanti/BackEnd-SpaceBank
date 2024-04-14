@@ -4,11 +4,12 @@ import jwt from 'jsonwebtoken';
 // Define uma nova interface estendida da interface padrão Request
 interface AuthRequest extends Request {
   userId?: string;
+  firstName?: string;
 }
 
 const secretKey = process.env.JWT_SECRET || 'your_secret_key';
 
-const requireAuth = (req: AuthRequest, res: Response, next: NextFunction) => {
+const requireAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
   if (!req.headers.authorization) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
@@ -19,12 +20,13 @@ const requireAuth = (req: AuthRequest, res: Response, next: NextFunction) => {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  jwt.verify(token, secretKey, (err: any, decoded: any) => {
+  jwt.verify(token, secretKey, async (err: any, decoded: any) => {
     if (err) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
     
-    req.userId = decoded.userId; // Define a propriedade userId no objeto req
+    req.userId = decoded.userId;
+    req.firstName = decoded.firstName; // Retrieve firstName from decoded token
     next();
   });
 };
