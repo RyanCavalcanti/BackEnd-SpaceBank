@@ -5,6 +5,10 @@ import { RowDataPacket } from 'mysql2';
 
 const saltRounds = 10;
 
+interface AuthRequest extends Request {
+  userId?: string;
+}
+
 export const registerUser = async (req: Request, res: Response) => {
   const { firstName, lastName, email, password } = req.body;
 
@@ -48,6 +52,57 @@ export const getUserInfo = async (req: Request, res: Response) => {
     res.status(200).json({ user: user[0] });
   } catch (error) {
     console.error('Error getting user info:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const adicionarSaldo = async (req: AuthRequest, res: Response) => {
+  const userId = req.userId;
+
+  try {
+    const [user] = await pool.query(
+      'SELECT saldo FROM users WHERE id = ?',
+      [userId]
+    ) as RowDataPacket[];
+
+    if (user.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const saldoAtual = user[0].saldo;
+
+    const novoSaldo = saldoAtual + req.body.valorTransacao;
+
+    await pool.query(
+      'UPDATE users SET saldo = ? WHERE id = ?',
+      [novoSaldo, userId]
+    );
+
+    res.status(200).json({ message: 'Saldo atualizado com sucesso', novoSaldo });
+  } catch (error) {
+    console.error('Erro ao adicionar saldo:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const obterSaldo = async (req: AuthRequest, res: Response) => {
+  const userId = req.userId;
+
+  try {
+    const [user] = await pool.query(
+      'SELECT saldo FROM users WHERE id = ?',
+      [userId]
+    ) as RowDataPacket[];
+
+    if (user.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const saldoAtual = user[0].saldo;
+
+    res.status(200).json({ saldo: saldoAtual });
+  } catch (error) {
+    console.error('Erro ao obter saldo:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
