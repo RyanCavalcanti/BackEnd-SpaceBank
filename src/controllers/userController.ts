@@ -84,24 +84,30 @@ export const adicionarSaldo = async (req: AuthRequest, res: Response) => {
   const { valorTransacao } = req.body;
 
   try {
-    // Primeiro, obtemos o saldo atual do usuário
+    // Verifica se o valor da transação é válido e positivo
+    const valor = parseFloat(valorTransacao);
+    if (isNaN(valor) || valor <= 0) {
+      return res.status(400).json({ message: 'Valor de transação inválido' });
+    }
+
+    // Consulta o saldo atual do usuário
     const [user] = await pool.query(
       'SELECT saldo FROM users WHERE id = ?',
       [userId]
     ) as RowDataPacket[];
 
-    if (user.length === 0) {
+    if (!user || user.length === 0) {
       return res.status(404).json({ message: 'Usuário não encontrado' });
     }
 
     const saldoAtual = user[0].saldo;
-    const novoSaldo = saldoAtual + parseFloat(valorTransacao);
+    const novoSaldo = saldoAtual + valor; // Soma o valor ao saldo atual
 
-    // Atualizamos o saldo do usuário no banco de dados
+    // Atualiza o saldo do usuário no banco de dados
     await pool.query(
       'UPDATE users SET saldo = ? WHERE id = ?',
       [novoSaldo, userId]
-    );
+      );
 
     res.status(200).json({ message: 'Saldo adicionado com sucesso', novoSaldo });
   } catch (error) {
@@ -115,20 +121,26 @@ export const subtrairSaldo = async (req: AuthRequest, res: Response) => {
   const { valorTransacao } = req.body;
 
   try {
-    // Primeiro, obtemos o saldo atual do usuário
+    // Primeiro, verificamos se o valor da transação é um número válido
+    const valor = parseFloat(valorTransacao);
+    if (isNaN(valor) || valor <= 0) {
+      return res.status(400).json({ message: 'Valor de transação inválido' });
+    }
+
+    // Consultamos o saldo atual do usuário
     const [user] = await pool.query(
       'SELECT saldo FROM users WHERE id = ?',
       [userId]
     ) as RowDataPacket[];
 
-    if (user.length === 0) {
+    if (!user || user.length === 0) {
       return res.status(404).json({ message: 'Usuário não encontrado' });
     }
 
     const saldoAtual = user[0].saldo;
-    const novoSaldo = saldoAtual - parseFloat(valorTransacao);
 
     // Verificamos se o usuário tem saldo suficiente para a transação
+    const novoSaldo = saldoAtual - valor;
     if (novoSaldo < 0) {
       return res.status(400).json({ message: 'Saldo insuficiente' });
     }
