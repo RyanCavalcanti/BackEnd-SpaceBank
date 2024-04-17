@@ -1,3 +1,4 @@
+// userController.ts
 import { Request, Response } from 'express';
 import pool from '../config/db';
 import bcrypt from 'bcrypt';
@@ -56,35 +57,6 @@ export const getUserInfo = async (req: Request, res: Response) => {
   }
 };
 
-export const adicionarSaldo = async (req: AuthRequest, res: Response) => {
-  const userId = req.userId;
-
-  try {
-    const [user] = await pool.query(
-      'SELECT saldo FROM users WHERE id = ?',
-      [userId]
-    ) as RowDataPacket[];
-
-    if (user.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    const saldoAtual = user[0].saldo;
-
-    const novoSaldo = saldoAtual + req.body.valorTransacao;
-
-    await pool.query(
-      'UPDATE users SET saldo = ? WHERE id = ?',
-      [novoSaldo, userId]
-    );
-
-    res.status(200).json({ message: 'Saldo atualizado com sucesso', novoSaldo });
-  } catch (error) {
-    console.error('Erro ao adicionar saldo:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-};
-
 export const obterSaldo = async (req: AuthRequest, res: Response) => {
   const userId = req.userId;
 
@@ -95,7 +67,7 @@ export const obterSaldo = async (req: AuthRequest, res: Response) => {
     ) as RowDataPacket[];
 
     if (user.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Usuário não encontrado' });
     }
 
     const saldoAtual = user[0].saldo;
@@ -103,6 +75,73 @@ export const obterSaldo = async (req: AuthRequest, res: Response) => {
     res.status(200).json({ saldo: saldoAtual });
   } catch (error) {
     console.error('Erro ao obter saldo:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+};
+
+export const adicionarSaldo = async (req: AuthRequest, res: Response) => {
+  const userId = req.userId;
+  const { valorTransacao } = req.body;
+
+  try {
+    // Primeiro, obtemos o saldo atual do usuário
+    const [user] = await pool.query(
+      'SELECT saldo FROM users WHERE id = ?',
+      [userId]
+    ) as RowDataPacket[];
+
+    if (user.length === 0) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    const saldoAtual = user[0].saldo;
+    const novoSaldo = saldoAtual + parseFloat(valorTransacao);
+
+    // Atualizamos o saldo do usuário no banco de dados
+    await pool.query(
+      'UPDATE users SET saldo = ? WHERE id = ?',
+      [novoSaldo, userId]
+    );
+
+    res.status(200).json({ message: 'Saldo adicionado com sucesso', novoSaldo });
+  } catch (error) {
+    console.error('Erro ao adicionar saldo:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+};
+
+export const subtrairSaldo = async (req: AuthRequest, res: Response) => {
+  const userId = req.userId;
+  const { valorTransacao } = req.body;
+
+  try {
+    // Primeiro, obtemos o saldo atual do usuário
+    const [user] = await pool.query(
+      'SELECT saldo FROM users WHERE id = ?',
+      [userId]
+    ) as RowDataPacket[];
+
+    if (user.length === 0) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    const saldoAtual = user[0].saldo;
+    const novoSaldo = saldoAtual - parseFloat(valorTransacao);
+
+    // Verificamos se o usuário tem saldo suficiente para a transação
+    if (novoSaldo < 0) {
+      return res.status(400).json({ message: 'Saldo insuficiente' });
+    }
+
+    // Atualizamos o saldo do usuário no banco de dados
+    await pool.query(
+      'UPDATE users SET saldo = ? WHERE id = ?',
+      [novoSaldo, userId]
+    );
+
+    res.status(200).json({ message: 'Saldo subtraído com sucesso', novoSaldo });
+  } catch (error) {
+    console.error('Erro ao subtrair saldo:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
