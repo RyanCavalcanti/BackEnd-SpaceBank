@@ -101,13 +101,13 @@ export const adicionarSaldo = async (req: AuthRequest, res: Response) => {
     }
 
     const saldoAtual = user[0].saldo;
-    const novoSaldo = saldoAtual + valor; // Soma o valor ao saldo atual
+    const novoSaldo = parseFloat(saldoAtual) + valor; // Soma o valor ao saldo atual
 
     // Atualiza o saldo do usuário no banco de dados
     await pool.query(
       'UPDATE users SET saldo = ? WHERE id = ?',
       [novoSaldo, userId]
-      );
+    );
 
     res.status(200).json({ message: 'Saldo adicionado com sucesso', novoSaldo });
   } catch (error) {
