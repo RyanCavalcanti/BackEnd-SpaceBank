@@ -1,4 +1,3 @@
-// userController.ts
 import { Request, Response } from 'express';
 import pool from '../config/db';
 import bcrypt from 'bcrypt';
@@ -154,6 +153,39 @@ export const subtrairSaldo = async (req: AuthRequest, res: Response) => {
     res.status(200).json({ message: 'Saldo subtraído com sucesso', novoSaldo });
   } catch (error) {
     console.error('Erro ao subtrair saldo:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+};
+
+export const saveTransaction = async (req: AuthRequest, res: Response) => {
+  const userId = req.userId;
+  const { tipo, valor, data, mes } = req.body;
+
+  try {
+    await pool.query(
+      'INSERT INTO transacoes (userId, tipo, valor, data, mes) VALUES (?, ?, ?, ?, ?)',
+      [userId, tipo, valor, data, mes]
+    );
+
+    res.status(201).json({ message: 'Transação salva com sucesso' });
+  } catch (error) {
+    console.error('Erro ao salvar transação:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+};
+
+export const getTransactions = async (req: AuthRequest, res: Response) => {
+  const userId = req.userId;
+
+  try {
+    const [transactions] = await pool.query(
+      'SELECT * FROM transacoes WHERE userId = ?',
+      [userId]
+    );
+
+    res.status(200).json({ transactions });
+  } catch (error) {
+    console.error('Erro ao obter transações:', error);
     res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
