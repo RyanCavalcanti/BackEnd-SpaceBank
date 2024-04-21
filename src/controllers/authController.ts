@@ -14,12 +14,12 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(401).json({ message: 'Não autorizado' });
   }
 
   jwt.verify(token, secretKey, (err: any, decoded: any) => {
     if (err) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Não autorizado' });
     }
     
     req.userId = decoded.userId;
@@ -28,7 +28,6 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
 };
 
 export const loginUser = async (req: Request, res: Response) => {
-  console.log('Received login request');
   const { email, password } = req.body;
 
   try {
@@ -38,7 +37,7 @@ export const loginUser = async (req: Request, res: Response) => {
     ) as RowDataPacket[];
 
     if (user.length === 0) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ message: 'email ou senha inválidos' });
     }
 
     const hashedPasswordFromDB = user[0].password;
@@ -46,14 +45,14 @@ export const loginUser = async (req: Request, res: Response) => {
     const match = await bcrypt.compare(password, hashedPasswordFromDB);
 
     if (!match) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ message: 'email ou senha inválidos' });
     }
 
     const token = jwt.sign({ userId: user[0].id, firstName: user[0].firstName }, secretKey, { expiresIn: '1h' });
 
-    res.status(200).json({ message: 'Login successful', token, userId: user[0].id, firstName: user[0].firstName });
+    res.status(200).json({ message: 'Sucesso ao fazer login', token, userId: user[0].id, firstName: user[0].firstName });
   } catch (error) {
-    console.error('Error logging in:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Erro ao fazer login:', error);
+    res.status(500).json({ message: 'Erro interno no servidor' });
   }
 };

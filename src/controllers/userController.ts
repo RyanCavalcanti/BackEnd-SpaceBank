@@ -19,7 +19,7 @@ export const registerUser = async (req: Request, res: Response) => {
     ) as RowDataPacket[];
 
     if (existingUser.length > 0) {
-      return res.status(400).json({ message: 'Email already registered' });
+      return res.status(400).json({ message: 'Email já registrado' });
     }
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -29,10 +29,10 @@ export const registerUser = async (req: Request, res: Response) => {
       [firstName, lastName, email, hashedPassword]
     );
 
-    res.status(201).json({ message: 'User registered successfully' });
+    res.status(201).json({ message: 'Usuário registrado com sucesso' });
   } catch (error) {
-    console.error('Error registering user:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Erro ao registrar usuário:', error);
+    res.status(500).json({ message: 'Erro interno no servidor' });
   }
 };
 
@@ -46,13 +46,13 @@ export const getUserInfo = async (req: Request, res: Response) => {
     ) as RowDataPacket[];
 
     if (user.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Usuário não encontrado' });
     }
 
     res.status(200).json({ user: user[0] });
   } catch (error) {
-    console.error('Error getting user info:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Erro ao obter informações do usuário:', error);
+    res.status(500).json({ message: 'Erro interno no servidor' });
   }
 };
 
@@ -83,13 +83,11 @@ export const adicionarSaldo = async (req: AuthRequest, res: Response) => {
   const { valorTransacao } = req.body;
 
   try {
-    // Verifica se o valor da transação é válido e positivo
     const valor = parseFloat(valorTransacao);
     if (isNaN(valor) || valor <= 0) {
       return res.status(400).json({ message: 'Valor de transação inválido' });
     }
 
-    // Consulta o saldo atual do usuário
     const [user] = await pool.query(
       'SELECT saldo FROM users WHERE id = ?',
       [userId]
@@ -100,9 +98,8 @@ export const adicionarSaldo = async (req: AuthRequest, res: Response) => {
     }
 
     const saldoAtual = user[0].saldo;
-    const novoSaldo = parseFloat(saldoAtual) + valor; // Soma o valor ao saldo atual
+    const novoSaldo = parseFloat(saldoAtual) + valor;
 
-    // Atualiza o saldo do usuário no banco de dados
     await pool.query(
       'UPDATE users SET saldo = ? WHERE id = ?',
       [novoSaldo, userId]
@@ -120,13 +117,11 @@ export const subtrairSaldo = async (req: AuthRequest, res: Response) => {
   const { valorTransacao } = req.body;
 
   try {
-    // Primeiro, verificamos se o valor da transação é um número válido
     const valor = parseFloat(valorTransacao);
     if (isNaN(valor) || valor <= 0) {
       return res.status(400).json({ message: 'Valor de transação inválido' });
     }
 
-    // Consultamos o saldo atual do usuário
     const [user] = await pool.query(
       'SELECT saldo FROM users WHERE id = ?',
       [userId]
@@ -138,13 +133,11 @@ export const subtrairSaldo = async (req: AuthRequest, res: Response) => {
 
     const saldoAtual = user[0].saldo;
 
-    // Verificamos se o usuário tem saldo suficiente para a transação
     const novoSaldo = saldoAtual - valor;
     if (novoSaldo < 0) {
       return res.status(400).json({ message: 'Saldo insuficiente' });
     }
 
-    // Atualizamos o saldo do usuário no banco de dados
     await pool.query(
       'UPDATE users SET saldo = ? WHERE id = ?',
       [novoSaldo, userId]
