@@ -7,14 +7,14 @@ const router = express.Router();
 
 router.post('/register', registerUser);
 
-router.get('/obter-saldo', requireAuth, verifyToken, obterSaldo);
+router.get('/saldo', requireAuth, verifyToken, obterSaldo);
 
-router.post('/adicionar-saldo', requireAuth, verifyToken, adicionarSaldo);
+router.post('/saldo/entrada', requireAuth, verifyToken, adicionarSaldo);
 
-router.post('/subtrair-saldo', requireAuth, verifyToken, subtrairSaldo); 
+router.post('/saldo/saida', requireAuth, verifyToken, subtrairSaldo); 
 
-router.post('/salvar-extrato', saveTransaction);
+router.post('/extrato', verifyToken, saveTransaction, getTransactions);
 
-router.get('/buscar-transacoes', requireAuth, verifyToken, getTransactions);
+router.get('/transacoes', requireAuth, verifyToken, getTransactions);
 
 export default router;

@@ -1,7 +1,7 @@
 {
   "name": "BackEnd-SpaceBank",
   "version": "1.0.0",
-  "description": "Descrição do seu projeto",
+  "description": "O SpackeBank é uma simulação de um banco digital, desenvolvido para que o usuário possa se cadastrar e fazer login normalmente para ter acesso ao dashboard principal onde ele terá acesso às transações de depósitos e transferências com integração a um banco de dados que salva as informações de saldo e extratos das transações e retorna sempre que o usuário faz login na página.",
   "main": "server.ts",
   "scripts": {
     "start": "node dist/server.js",

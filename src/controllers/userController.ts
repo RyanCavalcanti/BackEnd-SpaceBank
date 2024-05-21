@@ -152,12 +152,12 @@ export const subtrairSaldo = async (req: AuthRequest, res: Response) => {
 
 export const saveTransaction = async (req: AuthRequest, res: Response) => {
   const userId = req.userId;
-  const { tipo, valor, data, mes } = req.body;
+  const { transactionId, tipo, valor, data, mes } = req.body;
 
   try {
     await pool.query(
-      'INSERT INTO transacoes (userId, tipo, valor, data, mes) VALUES (?, ?, ?, ?, ?)',
-      [userId, tipo, valor, data, mes]
+      'INSERT INTO transacoes (userId, transactionId, tipo, valor, data, mes) VALUES (?, ?, ?, ?, ?, ?)',
+      [userId, transactionId, tipo, valor, data, mes] 
     );
 
     res.status(201).json({ message: 'Transação salva com sucesso' });
